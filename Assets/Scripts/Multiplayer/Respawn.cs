@@ -17,6 +17,12 @@ public class Respawn : MonoBehaviour
         clients.Add(id, gameObject);
     }
 
+    public void removeClient(string id)
+    {
+        Destroy(clients[id]);
+        clients.Remove(id);
+    }
+
     public void moveClient(string id, Vector3 pos, Quaternion rot)
     {
         GameObject gameObject = clients[id];

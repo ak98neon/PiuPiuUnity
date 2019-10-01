@@ -7,6 +7,7 @@ using System.Text;
 public class MultiListener : MonoBehaviour
 {
     public GameObject player;
+    public GameObject anotherPlayer;
     private StreamWriter writer;
     private NetworkStream stream;
     private string id;
@@ -25,6 +26,18 @@ public class MultiListener : MonoBehaviour
             print("Writer created");
             readData();
         }
+    }
+
+    void OnApplicationQuit()
+    {
+        Vector3 playerPos = player.transform.position;
+        Quaternion playerRot = player.transform.rotation;
+        Position pos = new Position(playerPos.x.ToString(), playerPos.y.ToString(), playerPos.z.ToString());
+        Rotation rot = new Rotation(playerRot.x.ToString(), playerRot.y.ToString(), playerRot.z.ToString(), playerRot.w.ToString());
+        PlayerRequest request = new PlayerRequest(id, pos, rot, "REMOVE");
+
+        string json = JsonUtility.ToJson(request);
+        send(json);
     }
 
     public void handleEvent(Vector3 position, Quaternion rotation)
@@ -120,8 +133,17 @@ public class MultiListener : MonoBehaviour
             case "MOVE":
                 moveClient(response.GetId(), position, rotation);
                 break;
+            case "REMOVE":
+                removePlayer(response.GetId());
+                break;
         }
 
+    }
+
+    void removePlayer(string id)
+    {
+        Respawn resp = GameObject.FindGameObjectWithTag(respawnTag).GetComponent<Respawn>();
+        resp.removeClient(id);
     }
 
     void createPlayer()
@@ -133,7 +155,7 @@ public class MultiListener : MonoBehaviour
     void createNewClient(string id, Vector3 pos, Quaternion rot)
     {
         Respawn resp = GameObject.FindGameObjectWithTag(respawnTag).GetComponent<Respawn>();
-        resp.addClient(id, pos, rot, player);
+        resp.addClient(id, pos, rot, anotherPlayer);
     }
 
     void moveClient(string id, Vector3 pos, Quaternion rot)
