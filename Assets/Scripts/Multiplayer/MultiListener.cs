@@ -18,7 +18,8 @@ public class MultiListener : MonoBehaviour
         print("Connection");
         TcpClient client = new TcpClient("127.0.0.1", 16000);
         stream = client.GetStream();
-        stream.ReadTimeout = 10;
+        stream.ReadTimeout = 5;
+        stream.WriteTimeout = 3;
         
         if (stream.CanRead)
         {
@@ -99,7 +100,7 @@ public class MultiListener : MonoBehaviour
             }
             catch (Exception ex)
             {
-
+                Debug.Log(ex.Message);
             }
         }
     }
