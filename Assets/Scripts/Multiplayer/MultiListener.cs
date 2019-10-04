@@ -3,6 +3,7 @@ using System.IO;
 using System.Net.Sockets;
 using System;
 using System.Text;
+using System.Globalization;
 
 public class MultiListener : MonoBehaviour
 {
@@ -65,7 +66,7 @@ public class MultiListener : MonoBehaviour
 
     private void send(string json)
     {
-        writer.Write(json);
+        writer.Write(json + "\n");
         writer.Flush();
     }
 
@@ -86,7 +87,7 @@ public class MultiListener : MonoBehaviour
                 {
                     int len = BitConverter.ToInt32(bLen, 0);
                     print("len = " + len);
-                    byte[] buff = new byte[8096];
+                    byte[] buff = new byte[1024];
                     data = stream.Read(buff, 0, len);
                     if (data > 0)
                     {
@@ -100,7 +101,7 @@ public class MultiListener : MonoBehaviour
             }
             catch (Exception ex)
             {
-                Debug.Log(ex.Message);
+                
             }
         }
     }
@@ -111,15 +112,15 @@ public class MultiListener : MonoBehaviour
         string action = response.GetAction();
         Debug.Log("action response" + response.GetAction());
 
-        Single pX = Convert.ToSingle(response.GetPosition().GetX());
-        Single pY = Convert.ToSingle(response.GetPosition().GetY());
-        Single pZ = Convert.ToSingle(response.GetPosition().GetZ());
+        Single pX = parseCoordinations(response.GetPosition().GetX());
+        Single pY = parseCoordinations(response.GetPosition().GetY());
+        Single pZ = parseCoordinations(response.GetPosition().GetZ());
         Vector3 position = new Vector3(pX, pY, pZ);
         
-        Single rX = Convert.ToSingle(response.GetRotation().GetX());
-        Single rY = Convert.ToSingle(response.GetRotation().GetY());
-        Single rZ = Convert.ToSingle(response.GetRotation().GetZ());
-        Single rW = Convert.ToSingle(response.GetRotation().GetW());
+        Single rX = parseCoordinations(response.GetRotation().GetX());
+        Single rY = parseCoordinations(response.GetRotation().GetY());
+        Single rZ = parseCoordinations(response.GetRotation().GetZ());
+        Single rW = parseCoordinations(response.GetRotation().GetW());
         Quaternion rotation = new Quaternion(rX, rY, rZ, rW);
 
         switch (action)
@@ -139,6 +140,11 @@ public class MultiListener : MonoBehaviour
                 break;
         }
 
+    }
+
+    float parseCoordinations(string param)
+    {
+        return Convert.ToSingle(param, new CultureInfo("en-US"));
     }
 
     void removePlayer(string id)
