@@ -144,7 +144,7 @@ public class MultiListener : MonoBehaviour
 
     float parseCoordinations(string param)
     {
-        return Convert.ToSingle(param, new CultureInfo("en-US"));
+        return Convert.ToSingle(param);
     }
 
     void removePlayer(string id)
