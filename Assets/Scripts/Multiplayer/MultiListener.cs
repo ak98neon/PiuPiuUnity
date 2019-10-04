@@ -17,7 +17,7 @@ public class MultiListener : MonoBehaviour
     void Start()
     {
         print("Connection");
-        TcpClient client = new TcpClient("127.0.0.1", 16000);
+        TcpClient client = new TcpClient("192.168.0.104", 16000);
         stream = client.GetStream();
         stream.ReadTimeout = 5;
         stream.WriteTimeout = 3;
