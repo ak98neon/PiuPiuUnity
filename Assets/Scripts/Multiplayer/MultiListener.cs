@@ -1,9 +1,11 @@
 ﻿using UnityEngine;
 using System.IO;
+using System.Net;
 using System.Net.Sockets;
 using System;
 using System.Text;
 using System.Globalization;
+using System.Threading;
 
 public class MultiListener : MonoBehaviour
 {
@@ -13,67 +15,117 @@ public class MultiListener : MonoBehaviour
     private NetworkStream stream;
     private string id;
     private string respawnTag = "Respawn";
+    private static int localPort = 9093;
+    private static int remotePort = 9092;
+    private static string remoteAddress = "localhost";
     
     void Start()
     {
         print("Connection");
-        TcpClient client = new TcpClient("192.168.0.104", 16000);
-        stream = client.GetStream();
-        stream.ReadTimeout = 5;
-        stream.WriteTimeout = 3;
+        UdpClient client = new UdpClient();
+        Thread receiveThread = new Thread(new ThreadStart(ReceiveMessage));
+        receiveThread.Start();
+        SendMessage();
+        // TcpClient client = new TcpClient("192.168.0.104", 16000);
+        // stream = client.GetStream();
+        // stream.ReadTimeout = 5;
+        // stream.WriteTimeout = 3;
         
-        if (stream.CanRead)
+        // if (stream.CanRead)
+        // {
+        //     writer = new StreamWriter(stream);
+        //     print("Writer created");
+        //     readData();
+        // }
+    }
+
+    private static void SendMessage()
+    {
+        UdpClient sender = new UdpClient();
+        try
         {
-            writer = new StreamWriter(stream);
-            print("Writer created");
-            readData();
+            string message = "HELLO";
+            byte[] data = Encoding.UTF8.GetBytes(message);
+            sender.Send(data, data.Length, remoteAddress, remotePort);
+            Debug.Log("Send: " + message);
         }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+        }
+        finally
+        {
+            sender.Close();
+        }
+    }
+
+    private static void ReceiveMessage()
+    {
+            UdpClient receiver = new UdpClient(remotePort);
+            IPEndPoint remoteIp = null;
+            try
+            {
+                while(true)
+                {
+                    byte[] data = receiver.Receive(ref remoteIp);
+                    string message = Encoding.UTF8.GetString(data);
+                    Console.WriteLine("Client: {0}", message);
+                }
+            }
+            catch(Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+            finally
+            {
+                receiver.Close();
+            }
     }
 
     void OnApplicationQuit()
     {
-        Vector3 playerPos = player.transform.position;
-        Quaternion playerRot = player.transform.rotation;
-        Position pos = new Position(playerPos.x.ToString(), playerPos.y.ToString(), playerPos.z.ToString());
-        Rotation rot = new Rotation(playerRot.x.ToString(), playerRot.y.ToString(), playerRot.z.ToString(), playerRot.w.ToString());
-        PlayerRequest request = new PlayerRequest(id, pos, rot, "REMOVE");
+        // Vector3 playerPos = player.transform.position;
+        // Quaternion playerRot = player.transform.rotation;
+        // Position pos = new Position(playerPos.x.ToString(), playerPos.y.ToString(), playerPos.z.ToString());
+        // Rotation rot = new Rotation(playerRot.x.ToString(), playerRot.y.ToString(), playerRot.z.ToString(), playerRot.w.ToString());
+        // PlayerRequest request = new PlayerRequest(id, pos, rot, "REMOVE");
 
-        string json = JsonUtility.ToJson(request);
-        send(json);
+        // string json = JsonUtility.ToJson(request);
+        // send(json);
     }
 
     public void handleEvent(Vector3 position, Quaternion rotation)
     {
-        print(this.id);
-        Position pos = new Position(position.x.ToString(), position.y.ToString(), position.z.ToString());
-        Rotation rot = new Rotation(rotation.x.ToString(), rotation.y.ToString(), rotation.z.ToString(), rotation.w.ToString());
-        PlayerRequest request = new PlayerRequest(id, pos, rot, "MOVE");
+        // print(this.id);
+        // Position pos = new Position(position.x.ToString(), position.y.ToString(), position.z.ToString());
+        // Rotation rot = new Rotation(rotation.x.ToString(), rotation.y.ToString(), rotation.z.ToString(), rotation.w.ToString());
+        // PlayerRequest request = new PlayerRequest(id, pos, rot, "MOVE");
 
-        string json = JsonUtility.ToJson(request);
-        send(json);
+        // string json = JsonUtility.ToJson(request);
+        // send(json);
     }
 
     public void sendMove(Vector3 move, bool crouch, bool jump)
     {
-        Position pos = new Position(move.x.ToString(), move.y.ToString(), move.z.ToString());
-        PlayerRequest request = new PlayerRequest(id, pos, "MoveChar");
+        // Position pos = new Position(move.x.ToString(), move.y.ToString(), move.z.ToString());
+        // PlayerRequest request = new PlayerRequest(id, pos, "MoveChar");
 
-        //json.AddField("crouch", crouch);
-        //json.AddField("jump", jump);
-        string json = JsonUtility.ToJson(request);
-        send(json);
+        // //json.AddField("crouch", crouch);
+        // //json.AddField("jump", jump);
+        // string json = JsonUtility.ToJson(request);
+        // send(json);
     }
 
     private void send(string json)
     {
-        writer.Write(json + "\n");
-        writer.Flush();
+        // writer.Write(json + "\n");
+        // writer.Flush();
     }
 
-    void Update()
-    {
-        readData();
-    }
+    // void Update()
+    // {
+    //     readData();
+    // }
 
     void readData()
     {
