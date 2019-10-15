@@ -61,7 +61,7 @@ public class MultiListener : MonoBehaviour
 
     private static void ReceiveMessage()
     {
-            UdpClient receiver = new UdpClient(remotePort);
+            UdpClient receiver = new UdpClient();
             IPEndPoint remoteIp = null;
             try
             {
