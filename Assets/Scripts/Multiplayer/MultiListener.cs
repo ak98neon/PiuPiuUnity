@@ -11,43 +11,26 @@ public class MultiListener : MonoBehaviour
 {
     public GameObject player;
     public GameObject anotherPlayer;
-    private StreamWriter writer;
-    private NetworkStream stream;
     private string id;
     private string respawnTag = "Respawn";
-    private static int localPort = 9093;
-    private static int remotePort = 9092;
-    private static string remoteAddress = "localhost";
+    private int remotePort = 9092;
+    private string remoteAddress = "localhost";
     
     void Start()
     {
-        print("Connection");
-        UdpClient client = new UdpClient();
-        Thread receiveThread = new Thread(new ThreadStart(ReceiveMessage));
-        receiveThread.Start();
-        SendMessage();
-        // TcpClient client = new TcpClient("192.168.0.104", 16000);
-        // stream = client.GetStream();
-        // stream.ReadTimeout = 5;
-        // stream.WriteTimeout = 3;
-        
-        // if (stream.CanRead)
-        // {
-        //     writer = new StreamWriter(stream);
-        //     print("Writer created");
-        //     readData();
-        // }
+        // print("Connection");
+        // Thread receiveThread = new Thread(new ThreadStart(ReceiveMessage));
+        // receiveThread.Start();
     }
 
-    private static void SendMessage()
+    private void send(string json)
     {
         UdpClient sender = new UdpClient();
         try
         {
-            string message = "HELLO";
-            byte[] data = Encoding.UTF8.GetBytes(message);
+            byte[] data = Encoding.UTF8.GetBytes(json);
             sender.Send(data, data.Length, remoteAddress, remotePort);
-            Debug.Log("Send: " + message);
+            Debug.Log("Send: " + json);
         }
         catch (Exception ex)
         {
@@ -59,67 +42,61 @@ public class MultiListener : MonoBehaviour
         }
     }
 
-    private static void ReceiveMessage()
-    {
-            UdpClient receiver = new UdpClient();
-            IPEndPoint remoteIp = null;
-            try
-            {
-                while(true)
-                {
-                    byte[] data = receiver.Receive(ref remoteIp);
-                    string message = Encoding.UTF8.GetString(data);
-                    Console.WriteLine("Client: {0}", message);
-                }
-            }
-            catch(Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-            }
-            finally
-            {
-                receiver.Close();
-            }
-    }
+    // private void ReceiveMessage()
+    // {
+    //         UdpClient receiver = new UdpClient(remotePort);
+    //         IPEndPoint remoteIp = null;
+    //         try
+    //         {
+    //             while(true)
+    //             {
+    //                 byte[] data = receiver.Receive(ref remoteIp);
+    //                 string message = Encoding.UTF8.GetString(data);
+    //                 Console.WriteLine("Client: {0}", message);
+    //             }
+    //         }
+    //         catch(Exception ex)
+    //         {
+    //             Console.WriteLine(ex.Message);
+    //         }
+    //         finally
+    //         {
+    //             receiver.Close();
+    //         }
+    // }
 
     void OnApplicationQuit()
     {
-        // Vector3 playerPos = player.transform.position;
-        // Quaternion playerRot = player.transform.rotation;
-        // Position pos = new Position(playerPos.x.ToString(), playerPos.y.ToString(), playerPos.z.ToString());
-        // Rotation rot = new Rotation(playerRot.x.ToString(), playerRot.y.ToString(), playerRot.z.ToString(), playerRot.w.ToString());
-        // PlayerRequest request = new PlayerRequest(id, pos, rot, "REMOVE");
+        Vector3 playerPos = player.transform.position;
+        Quaternion playerRot = player.transform.rotation;
+        Position pos = new Position(playerPos.x.ToString(), playerPos.y.ToString(), playerPos.z.ToString());
+        Rotation rot = new Rotation(playerRot.x.ToString(), playerRot.y.ToString(), playerRot.z.ToString(), playerRot.w.ToString());
+        PlayerRequest request = new PlayerRequest(id, pos, rot, "REMOVE");
 
-        // string json = JsonUtility.ToJson(request);
-        // send(json);
+        string json = JsonUtility.ToJson(request);
+        send(json);
     }
 
     public void handleEvent(Vector3 position, Quaternion rotation)
     {
-        // print(this.id);
-        // Position pos = new Position(position.x.ToString(), position.y.ToString(), position.z.ToString());
-        // Rotation rot = new Rotation(rotation.x.ToString(), rotation.y.ToString(), rotation.z.ToString(), rotation.w.ToString());
-        // PlayerRequest request = new PlayerRequest(id, pos, rot, "MOVE");
+        print(this.id);
+        Position pos = new Position(position.x.ToString(), position.y.ToString(), position.z.ToString());
+        Rotation rot = new Rotation(rotation.x.ToString(), rotation.y.ToString(), rotation.z.ToString(), rotation.w.ToString());
+        PlayerRequest request = new PlayerRequest(id, pos, rot, "MOVE");
 
-        // string json = JsonUtility.ToJson(request);
-        // send(json);
+        string json = JsonUtility.ToJson(request);
+        send(json);
     }
 
     public void sendMove(Vector3 move, bool crouch, bool jump)
     {
-        // Position pos = new Position(move.x.ToString(), move.y.ToString(), move.z.ToString());
-        // PlayerRequest request = new PlayerRequest(id, pos, "MoveChar");
+        Position pos = new Position(move.x.ToString(), move.y.ToString(), move.z.ToString());
+        PlayerRequest request = new PlayerRequest(id, pos, "MoveChar");
 
-        // //json.AddField("crouch", crouch);
-        // //json.AddField("jump", jump);
-        // string json = JsonUtility.ToJson(request);
-        // send(json);
-    }
-
-    private void send(string json)
-    {
-        // writer.Write(json + "\n");
-        // writer.Flush();
+        json.AddField("crouch", crouch);
+        json.AddField("jump", jump);
+        string json = JsonUtility.ToJson(request);
+        send(json);
     }
 
     // void Update()
@@ -127,72 +104,72 @@ public class MultiListener : MonoBehaviour
     //     readData();
     // }
 
-    void readData()
-    {
-        if (stream.CanRead)
-        {
-            try
-            {
-                byte[] bLen = new byte[4];
-                int data = stream.Read(bLen, 0, 4);
-                if (data > 0)
-                {
-                    int len = BitConverter.ToInt32(bLen, 0);
-                    print("len = " + len);
-                    byte[] buff = new byte[1024];
-                    data = stream.Read(buff, 0, len);
-                    if (data > 0)
-                    {
-                        string result = Encoding.ASCII.GetString(buff, 0, data);
-                        Debug.Log("result: " + result);
-                        stream.Flush();
-                        Debug.Log(result);
-                        parseData(result);
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
+    // void readData()
+    // {
+    //     if (stream.CanRead)
+    //     {
+    //         try
+    //         {
+    //             byte[] bLen = new byte[4];
+    //             int data = stream.Read(bLen, 0, 4);
+    //             if (data > 0)
+    //             {
+    //                 int len = BitConverter.ToInt32(bLen, 0);
+    //                 print("len = " + len);
+    //                 byte[] buff = new byte[1024];
+    //                 data = stream.Read(buff, 0, len);
+    //                 if (data > 0)
+    //                 {
+    //                     string result = Encoding.ASCII.GetString(buff, 0, data);
+    //                     Debug.Log("result: " + result);
+    //                     stream.Flush();
+    //                     Debug.Log(result);
+    //                     parseData(result);
+    //                 }
+    //             }
+    //         }
+    //         catch (Exception ex)
+    //         {
                 
-            }
-        }
-    }
+    //         }
+    //     }
+    // }
 
-    void parseData(string data)
-    {
-        PlayerResponse response = JsonUtility.FromJson<PlayerResponse>(data);
-        string action = response.GetAction();
-        Debug.Log("action response" + response.GetAction());
+    // void parseData(string data)
+    // {
+    //     PlayerResponse response = JsonUtility.FromJson<PlayerResponse>(data);
+    //     string action = response.GetAction();
+    //     Debug.Log("action response" + response.GetAction());
 
-        Single pX = parseCoordinations(response.GetPosition().GetX());
-        Single pY = parseCoordinations(response.GetPosition().GetY());
-        Single pZ = parseCoordinations(response.GetPosition().GetZ());
-        Vector3 position = new Vector3(pX, pY, pZ);
+    //     Single pX = parseCoordinations(response.GetPosition().GetX());
+    //     Single pY = parseCoordinations(response.GetPosition().GetY());
+    //     Single pZ = parseCoordinations(response.GetPosition().GetZ());
+    //     Vector3 position = new Vector3(pX, pY, pZ);
         
-        Single rX = parseCoordinations(response.GetRotation().GetX());
-        Single rY = parseCoordinations(response.GetRotation().GetY());
-        Single rZ = parseCoordinations(response.GetRotation().GetZ());
-        Single rW = parseCoordinations(response.GetRotation().GetW());
-        Quaternion rotation = new Quaternion(rX, rY, rZ, rW);
+    //     Single rX = parseCoordinations(response.GetRotation().GetX());
+    //     Single rY = parseCoordinations(response.GetRotation().GetY());
+    //     Single rZ = parseCoordinations(response.GetRotation().GetZ());
+    //     Single rW = parseCoordinations(response.GetRotation().GetW());
+    //     Quaternion rotation = new Quaternion(rX, rY, rZ, rW);
 
-        switch (action)
-        {
-            case "NEW_SESSION":
-                this.id = response.GetId();
-                createPlayer();
-                break;
-            case "NEW_CLIENT":
-                createNewClient(response.GetId(), position, rotation);
-                break;
-            case "MOVE":
-                moveClient(response.GetId(), position, rotation);
-                break;
-            case "REMOVE":
-                removePlayer(response.GetId());
-                break;
-        }
+    //     switch (action)
+    //     {
+    //         case "NEW_SESSION":
+    //             this.id = response.GetId();
+    //             createPlayer();
+    //             break;
+    //         case "NEW_CLIENT":
+    //             createNewClient(response.GetId(), position, rotation);
+    //             break;
+    //         case "MOVE":
+    //             moveClient(response.GetId(), position, rotation);
+    //             break;
+    //         case "REMOVE":
+    //             removePlayer(response.GetId());
+    //             break;
+    //     }
 
-    }
+    // }
 
     float parseCoordinations(string param)
     {
