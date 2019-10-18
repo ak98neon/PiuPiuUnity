@@ -98,7 +98,7 @@ public class MultiListener : MonoBehaviour
 
         // json.AddField("crouch", crouch);
         // json.AddField("jump", jump);
-        string json = JsonUtility.ToJson(request);ª
+        string json = JsonUtility.ToJson(request);
         send(json);
     }
 
