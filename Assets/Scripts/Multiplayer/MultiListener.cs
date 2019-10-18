@@ -6,6 +6,7 @@ using System;
 using System.Text;
 using System.Globalization;
 using System.Threading;
+using System.Collections.Concurrent;
 
 public class MultiListener : MonoBehaviour
 {
@@ -13,17 +14,35 @@ public class MultiListener : MonoBehaviour
     public GameObject anotherPlayer;
     private string id;
     private string respawnTag = "Respawn";
+    private int receivePort = 16000;
     private int remotePort = 9092;
-    private string remoteAddress = "localhost";
-    
+    private string remoteAddress = "127.0.0.1";
+
+    private readonly ConcurrentQueue<string> _queue = new ConcurrentQueue<string>();
+
     void Start()
     {
-        PlayerRequest request = new PlayerRequest(null, null, null, "NEW_SESSION");
-        string json = JsonUtility.ToJson(request);
-        send(json);
-
         Thread receiveThread = new Thread(new ThreadStart(ReceiveMessage));
         receiveThread.Start();
+
+        Respawn resp = GameObject.FindGameObjectWithTag(respawnTag).GetComponent<Respawn>();
+        Position pos = new Position(resp.transform.position.x.ToString(), resp.transform.position.y.ToString(), resp.transform.position.z.ToString());
+        Rotation rot = new Rotation(resp.transform.rotation.x.ToString(), resp.transform.rotation.y.ToString(), resp.transform.rotation.z.ToString(), resp.transform.rotation.w.ToString());
+        PlayerRequest request = new PlayerRequest(null, pos, rot, "NEW_SESSION");
+        string json = JsonUtility.ToJson(request);
+        send(json);
+    }
+
+    void Update()
+    {
+        if (_queue.Count > 0)
+        {
+            string message = null;
+            _queue.TryDequeue(out message);
+            Debug.Log("Message from listener thread: " + message);
+
+            parseData(message);
+        }
     }
 
     private void send(string json)
@@ -33,7 +52,7 @@ public class MultiListener : MonoBehaviour
         {
             byte[] data = Encoding.UTF8.GetBytes(json);
             sender.Send(data, data.Length, remoteAddress, remotePort);
-            Debug.Log("Send: " + json);
+            //Debug.Log("Send: " + json);
         }
         catch (Exception ex)
         {
@@ -47,25 +66,28 @@ public class MultiListener : MonoBehaviour
 
     private void ReceiveMessage()
     {
-            UdpClient receiver = new UdpClient();
-            IPEndPoint remoteIp = null;
-            try
+        UdpClient receiver = new UdpClient(receivePort);
+
+        IPEndPoint remoteIp = null;
+
+        try
+        {
+            while(true)
             {
-                while(true)
-                {
-                    byte[] data = receiver.Receive(ref remoteIp);
-                    string message = Encoding.UTF8.GetString(data);
-                    Console.WriteLine("Client: {0}", message);
-                }
+                byte[] data = receiver.Receive(ref remoteIp);
+                string message = Encoding.UTF8.GetString(data);
+                Debug.Log("Client: {0}" + message);
+                _queue.Enqueue(message);
             }
-            catch(Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-            }
-            finally
-            {
-                receiver.Close();
-            }
+        }
+        catch(Exception ex)
+        {
+            Debug.LogError(ex.Message);
+        }
+        finally
+        {
+            receiver.Close();
+        }
     }
 
     void OnApplicationQuit()
@@ -82,7 +104,6 @@ public class MultiListener : MonoBehaviour
 
     public void handleEvent(Vector3 position, Quaternion rotation)
     {
-        print(this.id);
         Position pos = new Position(position.x.ToString(), position.y.ToString(), position.z.ToString());
         Rotation rot = new Rotation(rotation.x.ToString(), rotation.y.ToString(), rotation.z.ToString(), rotation.w.ToString());
         PlayerRequest request = new PlayerRequest(id, pos, rot, "MOVE");
@@ -102,47 +123,11 @@ public class MultiListener : MonoBehaviour
         send(json);
     }
 
-    void Update()
-    {
-        // readData();
-    }
-
-    // void readData()
-    // {
-    //     if (stream.CanRead)
-    //     {
-    //         try
-    //         {
-    //             byte[] bLen = new byte[4];
-    //             int data = stream.Read(bLen, 0, 4);
-    //             if (data > 0)
-    //             {
-    //                 int len = BitConverter.ToInt32(bLen, 0);
-    //                 print("len = " + len);
-    //                 byte[] buff = new byte[1024];
-    //                 data = stream.Read(buff, 0, len);
-    //                 if (data > 0)
-    //                 {
-    //                     string result = Encoding.ASCII.GetString(buff, 0, data);
-    //                     Debug.Log("result: " + result);
-    //                     stream.Flush();
-    //                     Debug.Log(result);
-    //                     parseData(result);
-    //                 }
-    //             }
-    //         }
-    //         catch (Exception ex)
-    //         {
-                
-    //         }
-    //     }
-    // }
-
     void parseData(string data)
     {
         PlayerResponse response = JsonUtility.FromJson<PlayerResponse>(data);
         string action = response.GetAction();
-        Debug.Log("action response" + response.GetAction());
+        Debug.Log("action response: " + response.GetAction());
 
         Single pX = parseCoordinations(response.GetPosition().GetX());
         Single pY = parseCoordinations(response.GetPosition().GetY());
