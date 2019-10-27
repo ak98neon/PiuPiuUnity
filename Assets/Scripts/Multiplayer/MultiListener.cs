@@ -17,7 +17,7 @@ public class MultiListener : MonoBehaviour
     void Start()
     {
         print("Connection");
-        TcpClient client = new TcpClient("localhost", 16000);
+        TcpClient client = new TcpClient("52.15.155.25", 16000);
         stream = client.GetStream();
         stream.ReadTimeout = 5;
         stream.WriteTimeout = 3;
@@ -67,7 +67,7 @@ public class MultiListener : MonoBehaviour
         writer.Write(json.Length);
         writer.Flush();
 
-        writer.Write(json + "\n");
+        writer.Write(json);
         writer.Flush();
     }
 
@@ -107,42 +107,6 @@ public class MultiListener : MonoBehaviour
         }
     }
 
-    void parseData(string data)
-    {
-        PlayerResponse response = JsonUtility.FromJson<PlayerResponse>(data);
-        string action = response.GetAction();
-        Debug.Log("action response" + response.GetAction());
-
-        Single pX = parseCoordinations(response.GetPosition().GetX());
-        Single pY = parseCoordinations(response.GetPosition().GetY());
-        Single pZ = parseCoordinations(response.GetPosition().GetZ());
-        Vector3 position = new Vector3(pX, pY, pZ);
-        
-        Single rX = parseCoordinations(response.GetRotation().GetX());
-        Single rY = parseCoordinations(response.GetRotation().GetY());
-        Single rZ = parseCoordinations(response.GetRotation().GetZ());
-        Single rW = parseCoordinations(response.GetRotation().GetW());
-        Quaternion rotation = new Quaternion(rX, rY, rZ, rW);
-
-        switch (action)
-        {
-            case "NEW_SESSION":
-                this.id = response.GetId();
-                createPlayer();
-                break;
-            case "NEW_CLIENT":
-                createNewClient(response.GetId(), position, rotation);
-                break;
-            case "MOVE":
-                moveClient(response.GetId(), position, rotation);
-                break;
-            case "REMOVE":
-                removePlayer(response.GetId());
-                break;
-        }
-
-    }
-
     float parseCoordinations(string param)
     {
         return Convert.ToSingle(param);
@@ -170,5 +134,40 @@ public class MultiListener : MonoBehaviour
     {
         Respawn resp = GameObject.FindGameObjectWithTag(respawnTag).GetComponent<Respawn>();
         resp.moveClient(id, pos, rot);
+    }
+
+    void parseData(string data)
+    {
+        PlayerResponse response = JsonUtility.FromJson<PlayerResponse>(data);
+        string action = response.GetAction();
+        Debug.Log("action response" + response.GetAction());
+
+        Single pX = parseCoordinations(response.GetPosition().GetX());
+        Single pY = parseCoordinations(response.GetPosition().GetY());
+        Single pZ = parseCoordinations(response.GetPosition().GetZ());
+        Vector3 position = new Vector3(pX, pY, pZ);
+
+        Single rX = parseCoordinations(response.GetRotation().GetX());
+        Single rY = parseCoordinations(response.GetRotation().GetY());
+        Single rZ = parseCoordinations(response.GetRotation().GetZ());
+        Single rW = parseCoordinations(response.GetRotation().GetW());
+        Quaternion rotation = new Quaternion(rX, rY, rZ, rW);
+
+        switch (action)
+        {
+            case "NEW_SESSION":
+                this.id = response.GetId();
+                createPlayer();
+                break;
+            case "NEW_CLIENT":
+                createNewClient(response.GetId(), position, rotation);
+                break;
+            case "MOVE":
+                moveClient(response.GetId(), position, rotation);
+                break;
+            case "REMOVE":
+                removePlayer(response.GetId());
+                break;
+        }
     }
 }

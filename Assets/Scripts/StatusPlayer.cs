@@ -13,7 +13,7 @@ public class StatusPlayer : MonoBehaviour
     [SerializeField]
     private int hp_Player = 10;
     [SerializeField]
-    private int armor_Player = 10;
+    private int armor_Player;
 
     public int statusHpPlayer { get; set; }
     public int statusArmorPlayer { get; set; }

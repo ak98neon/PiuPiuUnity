@@ -2,7 +2,7 @@
 using System.Collections;/// <remarks>
 /// Shooting script
 /// </remarks>
-public class Strelba : MonoBehaviour
+public class Shooting : MonoBehaviour
 {
     #region Variables
     public enum CurrentWeapon { pistol, rifle } //Status of active gun
@@ -13,9 +13,9 @@ public class Strelba : MonoBehaviour
 
     public Rigidbody bulletPrefab;
     public Transform rukiPlayer;
-    public float bulletForce = 500000.0f;
+    public float bulletForce = 50000.0f;
 
-    public Camera mainCamera; //Main cam
+    public Camera mainCamera; //Main camera
     public ParticleSystem iskra;
     public AudioSource audio;
     public AudioClip firePistol;
@@ -35,8 +35,6 @@ public class Strelba : MonoBehaviour
     private int ammoRifle = 30;
 
     [SerializeField]
-    private int countGrenade = 3;
-    public GameObject grenadePrefab;
     public Transform ruki;
     private float forceGrenade = 500.0f;
 
@@ -131,15 +129,20 @@ public class Strelba : MonoBehaviour
     {
         rukiPlayer.rotation = mainCamera.GetComponent<Transform>().rotation;
 
-        if (Input.GetKeyDown(KeyCode.Mouse0) && reloadActive == false && ammoPistol > 0 && polKursor == menuAlive.game && currentGun == CurrentWeapon.pistol)
+        if (Input.GetKeyDown(KeyCode.Mouse0)
+            && reloadActive == false
+            && ammoPistol > 0
+            && polKursor == menuAlive.game
+            && currentGun == CurrentWeapon.pistol)
         {
             audio.PlayOneShot(firePistol);
             ammoPistol--;
 
-            Rigidbody playerFire = Instantiate(bulletPrefab, ruki.position, ruki.rotation) as Rigidbody;
+            /*Rigidbody playerFire = Instantiate(bulletPrefab, ruki.position, ruki.rotation) as Rigidbody;
             playerFire.AddForce(ruki.forward * bulletForce);
             Physics.IgnoreCollision(bulletPrefab.GetComponent<Collider>(), GetComponent<Collider>()); //Игнорируем коллайдер игрока, чтобы игрок не убивал сам себя
-            /*Vector3 point = new Vector3(mainCamera.pixelWidth / 2, mainCamera.pixelHeight / 2, 0);
+            */
+            Vector3 point = new Vector3(mainCamera.pixelWidth / 2, mainCamera.pixelHeight / 2, 0);
             Ray ray = mainCamera.ScreenPointToRay(point);
             RaycastHit hit;
 
@@ -155,8 +158,8 @@ public class Strelba : MonoBehaviour
                 }
                 else
                 {
-                    iskra.transform.position = hit.point;
-                    iskra.Play();
+                    //iskra.transform.position = hit.point;
+                    //iskra.Play();
                     if (player != null)
                     {
                         player.hpPlayerDamage(damageHP);
@@ -166,7 +169,7 @@ public class Strelba : MonoBehaviour
                         StartCoroutine(SphereIndicator(hit.point));
                     }
                 }
-            }*/
+            }
         }
     }
 

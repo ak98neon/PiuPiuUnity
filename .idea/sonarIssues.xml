@@ -8,12 +8,27 @@
             <set />
           </value>
         </entry>
+        <entry key="$PROJECT_DIR$/../../IDE/PiuPiuServer/src/main/java/com/unity/shooter/piupiu_server/container/ChannelClients.java">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../../IDE/PiuPiuServer/src/main/java/com/unity/shooter/piupiu_server/model/dto/ClientDataDto.java">
+          <value>
+            <set />
+          </value>
+        </entry>
         <entry key="$PROJECT_DIR$/../../IDE/PiuPiuServer/src/main/java/com/unity/shooter/piupiu_server/netty/ServerHandler.java">
           <value>
             <set />
           </value>
         </entry>
         <entry key="$PROJECT_DIR$/Assets/Scripts/Multiplayer/MultiListener.cs">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="/fragment.java">
           <value>
             <set />
           </value>
