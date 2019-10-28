@@ -64,10 +64,7 @@ public class MultiListener : MonoBehaviour
 
     private void send(string json)
     {
-        writer.Write(json.Length);
-        writer.Flush();
-
-        writer.Write(json);
+        writer.Write(json + "|");
         writer.Flush();
     }
 
