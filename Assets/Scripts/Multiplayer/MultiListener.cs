@@ -13,11 +13,16 @@ public class MultiListener : MonoBehaviour
     private NetworkStream stream;
     private string id;
     private string respawnTag = "Respawn";
+    private string DELIMETER = "|";
+
+    //private string ip = "52.15.155.25";
+    private string ip = "localhost";
+    private int port = 16000;
     
     void Start()
     {
         print("Connection");
-        TcpClient client = new TcpClient("52.15.155.25", 16000);
+        TcpClient client = new TcpClient(ip, port);
         stream = client.GetStream();
         stream.ReadTimeout = 5;
         stream.WriteTimeout = 3;
@@ -30,42 +35,47 @@ public class MultiListener : MonoBehaviour
         }
     }
 
+    private void send(string json)
+    {
+        writer.Write(json + DELIMETER);
+        writer.Flush();
+    }
+
     void OnApplicationQuit()
     {
         Vector3 playerPos = player.transform.position;
         Quaternion playerRot = player.transform.rotation;
         Position pos = new Position(playerPos.x.ToString(), playerPos.y.ToString(), playerPos.z.ToString());
         Rotation rot = new Rotation(playerRot.x.ToString(), playerRot.y.ToString(), playerRot.z.ToString(), playerRot.w.ToString());
-        PlayerRequest request = new PlayerRequest(id, pos, rot, "REMOVE");
+
+        string action = GetClientActionName(ClientAction.REMOVE);
+        PlayerRequest request = new PlayerRequest(id, pos, rot, action);
 
         string json = JsonUtility.ToJson(request);
         send(json);
     }
 
-    public void handleEvent(Vector3 position, Quaternion rotation)
+    public void handleEvent(Vector3 position, Quaternion rotation, ClientAction action, Vector3 target)
     {
-        print(this.id);
+        handleEventWithShootParam(position, rotation, action, target);
+    }
+
+    public void handleEvent(Vector3 position, Quaternion rotation, ClientAction action)
+    {
+        handleEventWithShootParam(position, rotation, action, Vector3.zero);
+    }
+
+    private void handleEventWithShootParam(Vector3 position, Quaternion rotation, ClientAction action, Vector3 target)
+    {
         Position pos = new Position(position.x.ToString(), position.y.ToString(), position.z.ToString());
+        Position tarPosition = new Position(target.x.ToString(), target.y.ToString(), target.z.ToString());
         Rotation rot = new Rotation(rotation.x.ToString(), rotation.y.ToString(), rotation.z.ToString(), rotation.w.ToString());
-        PlayerRequest request = new PlayerRequest(id, pos, rot, "MOVE");
+
+        string actionStr = GetClientActionName(action);
+        PlayerRequest request = new PlayerRequest(id, pos, rot, actionStr, tarPosition);
 
         string json = JsonUtility.ToJson(request);
         send(json);
-    }
-
-    public void sendMove(Vector3 move, bool crouch, bool jump)
-    {
-        Position pos = new Position(move.x.ToString(), move.y.ToString(), move.z.ToString());
-        PlayerRequest request = new PlayerRequest(id, pos, "MoveChar");
-        
-        string json = JsonUtility.ToJson(request);
-        send(json);
-    }
-
-    private void send(string json)
-    {
-        writer.Write(json + "|");
-        writer.Flush();
     }
 
     void Update()
@@ -84,7 +94,6 @@ public class MultiListener : MonoBehaviour
                 if (data > 0)
                 {
                     int len = BitConverter.ToInt32(bLen, 0);
-                    print("len = " + len);
                     byte[] buff = new byte[1024];
                     data = stream.Read(buff, 0, len);
                     if (data > 0)
@@ -102,11 +111,6 @@ public class MultiListener : MonoBehaviour
                 
             }
         }
-    }
-
-    float parseCoordinations(string param)
-    {
-        return Convert.ToSingle(param);
     }
 
     void removePlayer(string id)
@@ -133,21 +137,32 @@ public class MultiListener : MonoBehaviour
         resp.moveClient(id, pos, rot);
     }
 
+    public string GetClientActionName(ClientAction value)
+    {
+        return Enum.GetName(typeof(ClientAction), value);
+    }
+
+    void anotherPlayerShoot(string id, Position target)
+    {
+        Respawn resp = GameObject.FindGameObjectWithTag(respawnTag).GetComponent<Respawn>();
+        resp.shoot(id, target);
+    }
+
     void parseData(string data)
     {
         PlayerResponse response = JsonUtility.FromJson<PlayerResponse>(data);
         string action = response.GetAction();
         Debug.Log("action response" + response.GetAction());
 
-        Single pX = parseCoordinations(response.GetPosition().GetX());
-        Single pY = parseCoordinations(response.GetPosition().GetY());
-        Single pZ = parseCoordinations(response.GetPosition().GetZ());
+        Single pX = CoordinatsUtil.parseCoordinations(response.GetPosition().GetX());
+        Single pY = CoordinatsUtil.parseCoordinations(response.GetPosition().GetY());
+        Single pZ = CoordinatsUtil.parseCoordinations(response.GetPosition().GetZ());
         Vector3 position = new Vector3(pX, pY, pZ);
 
-        Single rX = parseCoordinations(response.GetRotation().GetX());
-        Single rY = parseCoordinations(response.GetRotation().GetY());
-        Single rZ = parseCoordinations(response.GetRotation().GetZ());
-        Single rW = parseCoordinations(response.GetRotation().GetW());
+        Single rX = CoordinatsUtil.parseCoordinations(response.GetRotation().GetX());
+        Single rY = CoordinatsUtil.parseCoordinations(response.GetRotation().GetY());
+        Single rZ = CoordinatsUtil.parseCoordinations(response.GetRotation().GetZ());
+        Single rW = CoordinatsUtil.parseCoordinations(response.GetRotation().GetW());
         Quaternion rotation = new Quaternion(rX, rY, rZ, rW);
 
         switch (action)
@@ -164,6 +179,9 @@ public class MultiListener : MonoBehaviour
                 break;
             case "REMOVE":
                 removePlayer(response.GetId());
+                break;
+            case "SHOOT":
+                anotherPlayerShoot(response.GetId(), response.GetTarget());
                 break;
         }
     }

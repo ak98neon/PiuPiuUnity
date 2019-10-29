@@ -46,6 +46,9 @@ public class Shooting : MonoBehaviour
 
     //Animation
     private Animator _animator;
+
+    private MultiListener listener;
+    private string respawnTag = "Respawn";
     #endregion
 
     /// <summary>
@@ -67,6 +70,8 @@ public class Shooting : MonoBehaviour
 
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
+
+        listener = GameObject.FindGameObjectWithTag(respawnTag).GetComponent<MultiListener>();
     }
 
     /// <summary>
@@ -138,10 +143,6 @@ public class Shooting : MonoBehaviour
             audio.PlayOneShot(firePistol);
             ammoPistol--;
 
-            /*Rigidbody playerFire = Instantiate(bulletPrefab, ruki.position, ruki.rotation) as Rigidbody;
-            playerFire.AddForce(ruki.forward * bulletForce);
-            Physics.IgnoreCollision(bulletPrefab.GetComponent<Collider>(), GetComponent<Collider>()); //Игнорируем коллайдер игрока, чтобы игрок не убивал сам себя
-            */
             Vector3 point = new Vector3(mainCamera.pixelWidth / 2, mainCamera.pixelHeight / 2, 0);
             Ray ray = mainCamera.ScreenPointToRay(point);
             RaycastHit hit;
@@ -151,6 +152,9 @@ public class Shooting : MonoBehaviour
                 GameObject hitObject = hit.transform.gameObject;
                 ReactiveTarget target = hitObject.GetComponent<ReactiveTarget>();
                 StatusPlayer player = hitObject.GetComponent<StatusPlayer>();
+
+                listener.handleEvent(hitObject.transform.position, hitObject.transform.rotation, ClientAction.SHOOT,
+                    hit.point);
 
                 if (target != null)
                 {
@@ -166,7 +170,7 @@ public class Shooting : MonoBehaviour
                     }
                     else
                     {
-                        StartCoroutine(SphereIndicator(hit.point));
+                        StartCoroutine(ShootingUtil.SphereIndicator(hit.point));
                     }
                 }
             }
@@ -208,7 +212,7 @@ public class Shooting : MonoBehaviour
                     }
                     else
                     {
-                        StartCoroutine(SphereIndicator(hit.point));
+                        StartCoroutine(ShootingUtil.SphereIndicator(hit.point));
                     }
                 }
             }
@@ -269,17 +273,6 @@ public class Shooting : MonoBehaviour
     {
         yield return new WaitForSeconds(timeReload);
         reloadActive = false;
-    }
-
-    private IEnumerator SphereIndicator(Vector3 pos)
-    {
-        GameObject sphere = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-        sphere.transform.localScale = new Vector3(0.1f, 0.1f, 0.1f);
-        sphere.transform.position = pos;
-
-        yield return new WaitForSeconds(1);
-
-        Destroy(sphere);
     }
 
     void OnGUI()

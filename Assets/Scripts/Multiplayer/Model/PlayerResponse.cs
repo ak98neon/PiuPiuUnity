@@ -14,6 +14,8 @@ public class PlayerResponse
     private Rotation rotation;
     [SerializeField]
     private string action;
+    [SerializeField]
+    private Position target;
 
     public PlayerResponse()
     {
@@ -26,6 +28,15 @@ public class PlayerResponse
         this.position = position;
         this.rotation = rotation;
         this.action = action;
+    }
+
+    public PlayerResponse(string id, Position position, Rotation rotation, string action, Position target)
+    {
+        this.id = id;
+        this.position = position;
+        this.rotation = rotation;
+        this.action = action;
+        this.target = target;
     }
 
     public PlayerResponse(Position position, Rotation rotation)
@@ -52,5 +63,10 @@ public class PlayerResponse
     public string GetAction()
     {
         return this.action;
+    }
+
+    public Position GetTarget()
+    {
+        return this.target;
     }
 }

@@ -16,7 +16,7 @@ public class PlayerObserver : MonoBehaviour
     {
         if (Input.anyKey)
         {
-            listener.handleEvent(transform.position, transform.rotation);
+            listener.handleEvent(transform.position, transform.rotation, ClientAction.MOVE);
         }
     }
 }
