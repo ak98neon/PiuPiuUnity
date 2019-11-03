@@ -11,3 +11,11 @@ J
 Assets/Scripts/Shooting.cs,d/b/db7eb80ed6a01427e1cb8df31796ea34c6b9d4a6
 N
 Assets/Scripts/StatusPlayer.cs,a/5/a5877120a421da3a651ea0ce4cb7e17ae757a15f
+a
+1Assets/Scripts/Multiplayer/Model/PlayerRequest.cs,9/6/968c873a90cdec500b0ea33c67f5ed2b9cb9827a
+b
+2Assets/Scripts/Multiplayer/Model/PlayerResponse.cs,8/2/82630d20c920f6beadc2d6b55aaf7f46a42e7487
+\
+,Assets/Scripts/Multiplayer/PlayerObserver.cs,3/7/3732466609319100a97d040eda418136a72914a3
+U
+%Assets/Scripts/Multiplayer/Respawn.cs,a/e/ae32ae06d0de9c8106dd2fa6ebbc1c395e2f413e
