@@ -16,20 +16,32 @@ public class PickUpItem : MonoBehaviour
         RaycastHit hitInfo;
         Ray r = new Ray(playerCamera.transform.position, playerCamera.transform.forward);
 
-        if (Physics.Raycast(r, out hitInfo))
+        if (Physics.Raycast(r, out hitInfo, 5))
         {
-            if (hitInfo.transform.CompareTag("Weapon"))
+            if (hitInfo.transform.CompareTag("Pistol") || hitInfo.transform.CompareTag("Rifle"))
             {
                 isCanTakeItem = true;
                 if (Input.GetKeyDown(KeyCode.F))
                 {
-                    var weapon = hitInfo.transform.gameObject;
-                    Destroy(hitInfo.transform.gameObject);
-                    playerHand.transform.parent = weapon.transform;
-                    playerHand.transform.position = Vector3.zero;
-                    playerHand.transform.rotation = Quaternion.identity;
-
                     isCanTakeItem = false;
+
+                    for (int i = 0; i < playerHand.transform.childCount; i++)
+                    {
+                        Destroy(playerHand.transform.GetChild(i).gameObject);
+                    }
+                    GameObject weapon = hitInfo.transform.gameObject;
+                    weapon.transform.parent = playerHand.transform;
+                    weapon.transform.localPosition = new Vector3(0, -0.135f, 0);
+                    weapon.transform.localRotation = Quaternion.identity;
+
+                    Shooting shotComponent = GetComponent<Shooting>();
+                    if (hitInfo.transform.CompareTag("Pistol"))
+                    {
+                        shotComponent.CurrentGun = Shooting.CurrentWeapon.pistol;
+                    } else
+                    {
+                        shotComponent.CurrentGun = Shooting.CurrentWeapon.rifle;
+                    }
                 }
             }
         } else
@@ -42,7 +54,7 @@ public class PickUpItem : MonoBehaviour
     {
         if (isCanTakeItem)
         {
-            guiStyle.normal.textColor = Color.black;
+            guiStyle.normal.textColor = Color.white;
             guiStyle.fontSize = 20;
             GUI.Label(new Rect(playerCamera.pixelWidth / 2, playerCamera.pixelHeight / 2 + 200, 150, 30), "For take push F", guiStyle);
         }

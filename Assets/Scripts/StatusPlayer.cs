@@ -9,14 +9,16 @@ using System.Collections;
 
 public class StatusPlayer : MonoBehaviour
 {
-
     [SerializeField]
-    private int hp_Player = 10;
+    private string id;
     [SerializeField]
-    private int armor_Player;
+    private int hpPlayer = 10;
+    [SerializeField]
+    private int armorPlayer;
 
     public int statusHpPlayer { get; set; }
     public int statusArmorPlayer { get; set; }
+    public string Id { get => id; set => id = value; }
 
     void Update()
     {
@@ -25,17 +27,23 @@ public class StatusPlayer : MonoBehaviour
 
     public void hpPlayerDamage(int damage)
     {
-        this.hp_Player -= damage;
+        if (this.armorPlayer > 0)
+        {
+            armorPlayerDamage(damage);
+        } else
+        {
+            this.hpPlayer -= damage;
+        }
     }
 
     public void armorPlayerDamage(int damage)
     {
-        this.armor_Player -= damage;
+        this.armorPlayer -= damage;
     }
 
     public void alive()
     {
-        if (hp_Player <= 0)
+        if (hpPlayer <= 0)
         {
             Destroy(gameObject);
         }

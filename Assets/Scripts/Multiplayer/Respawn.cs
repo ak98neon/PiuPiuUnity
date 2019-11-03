@@ -15,6 +15,8 @@ public class Respawn : MonoBehaviour
     {
         GameObject gameObject = Instantiate(objPrefab, pos, rot) as GameObject;
         gameObject.transform.rotation = rot;
+        StatusPlayer status = gameObject.GetComponent<StatusPlayer>();
+        status.Id = id;
         clients.Add(id, gameObject);
     }
 
@@ -41,5 +43,12 @@ public class Respawn : MonoBehaviour
         GameObject client = clients[id];
         AnotherPlayerShooting shooting = client.GetComponent<AnotherPlayerShooting>();
         shooting.shoot(targetPos);
+    }
+
+    public void hit(string id, int damage)
+    {
+        GameObject client = clients[id];
+        StatusPlayer clientStatus = client.GetComponent<StatusPlayer>();
+        clientStatus.hpPlayerDamage(damage);
     }
 }

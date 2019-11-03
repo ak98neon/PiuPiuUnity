@@ -5,8 +5,8 @@ using System.Collections;/// <remarks>
 public class Shooting : MonoBehaviour
 {
     #region Variables
-    public enum CurrentWeapon { pistol, rifle } //Status of active gun
-    public CurrentWeapon currentGun;
+    public enum CurrentWeapon { none, pistol, rifle } //Status of active gun
+    private CurrentWeapon currentGun;
 
     public enum menuAlive { game = 0, setting = 1 }; //Status of menu
     public menuAlive polKursor;
@@ -49,6 +49,8 @@ public class Shooting : MonoBehaviour
 
     private MultiListener listener;
     private string respawnTag = "Respawn";
+
+    public CurrentWeapon CurrentGun { get => currentGun; set => currentGun = value; }
     #endregion
 
     /// <summary>
@@ -65,7 +67,7 @@ public class Shooting : MonoBehaviour
         ammoPistol = spawnCountAmmoPistol;
         ammoRifle = spawnCountAmmoRifle;
 
-        currentGun = CurrentWeapon.pistol;
+        CurrentGun = CurrentWeapon.none;
         polKursor = menuAlive.game;
 
         Cursor.lockState = CursorLockMode.Locked;
@@ -118,12 +120,12 @@ public class Shooting : MonoBehaviour
     {
         if (Input.GetKey(KeyCode.Alpha1))
         {
-            currentGun = CurrentWeapon.pistol;
+            CurrentGun = CurrentWeapon.pistol;
         }
 
         if (Input.GetKey(KeyCode.Alpha2))
         {
-            currentGun = CurrentWeapon.rifle;
+            CurrentGun = CurrentWeapon.rifle;
         }
     }
 
@@ -132,13 +134,16 @@ public class Shooting : MonoBehaviour
     /// </summary>
     public void FirePistol()
     {
-        rukiPlayer.rotation = mainCamera.GetComponent<Transform>().rotation;
+        if (currentGun != CurrentWeapon.none)
+        {
+            rukiPlayer.rotation = mainCamera.GetComponent<Transform>().rotation;
+        }
 
         if (Input.GetKeyDown(KeyCode.Mouse0)
             && reloadActive == false
             && ammoPistol > 0
             && polKursor == menuAlive.game
-            && currentGun == CurrentWeapon.pistol)
+            && CurrentGun == CurrentWeapon.pistol)
         {
             audio.PlayOneShot(firePistol);
             ammoPistol--;
@@ -158,6 +163,8 @@ public class Shooting : MonoBehaviour
 
                 if (target != null)
                 {
+                    listener.handleEvent(hitObject.transform.position, hitObject.transform.rotation, ClientAction.SHOOT,
+                            hit.point);
                     target.ReactToHit();
                 }
                 else
@@ -166,6 +173,9 @@ public class Shooting : MonoBehaviour
                     //iskra.Play();
                     if (player != null)
                     {
+                        StatusPlayer status = hitObject.GetComponent<StatusPlayer>();
+                        listener.handleHitAnotherPlayer(hitObject.transform.position, hitObject.transform.rotation, ClientAction.HIT,
+                            status.Id, hit.point);
                         player.hpPlayerDamage(damageHP);
                     }
                     else
@@ -182,7 +192,7 @@ public class Shooting : MonoBehaviour
     /// </summary>
     public void FireRifle()
     {
-        if (Input.GetKeyDown(KeyCode.Mouse0) && reloadActive == false && ammoRifle > 0 && polKursor == menuAlive.game && currentGun == CurrentWeapon.rifle)
+        if (Input.GetKeyDown(KeyCode.Mouse0) && reloadActive == false && ammoRifle > 0 && polKursor == menuAlive.game && CurrentGun == CurrentWeapon.rifle)
         {
             audio.PlayOneShot(firePistol);
             ammoRifle--;
@@ -224,7 +234,7 @@ public class Shooting : MonoBehaviour
     /// </summary>
     public void reload()
     {
-        if (Input.GetKeyDown(KeyCode.R) && currentGun == CurrentWeapon.pistol && ammoPistol != spawnCountAmmoPistol && allAmmoPistol > 0)
+        if (Input.GetKeyDown(KeyCode.R) && CurrentGun == CurrentWeapon.pistol && ammoPistol != spawnCountAmmoPistol && allAmmoPistol > 0)
         {
             audio.PlayOneShot(reloadAudio);
             reloadActive = true;
@@ -247,7 +257,7 @@ public class Shooting : MonoBehaviour
             }
         }
 
-        if (Input.GetKeyDown(KeyCode.R) && currentGun == CurrentWeapon.rifle && ammoRifle != spawnCountAmmoRifle && allAmmoRifle > 0)
+        if (Input.GetKeyDown(KeyCode.R) && CurrentGun == CurrentWeapon.rifle && ammoRifle != spawnCountAmmoRifle && allAmmoRifle > 0)
         {
             audio.PlayOneShot(reloadAudio);
             reloadActive = true;
@@ -282,17 +292,17 @@ public class Shooting : MonoBehaviour
             GUI.DrawTexture(positionCrosshair, crossHair);
         }
 
-        if (currentGun == CurrentWeapon.pistol)
+        if (CurrentGun == CurrentWeapon.pistol)
         {
             GUI.Label(new Rect(5, 30, 100, 30), "Пистолет: [" + ammoPistol + "/" + allAmmoPistol + "]");
-        } else if (currentGun == CurrentWeapon.rifle)
+        } else if (CurrentGun == CurrentWeapon.rifle)
         {
             GUI.Label(new Rect(5, 30, 120, 30), "Автомат: [" + ammoRifle + "/" + allAmmoRifle + "]");
         }
 
-        if (ammoPistol == 0 && allAmmoPistol > 0 && currentGun == CurrentWeapon.pistol) {
+        if (ammoPistol == 0 && allAmmoPistol > 0 && CurrentGun == CurrentWeapon.pistol) {
             GUI.Label(new Rect(mainCamera.pixelWidth / 2, mainCamera.pixelHeight / 2 + 200, 150, 30), "Перезарядите [R]");
-        } else if (ammoRifle == 0 && allAmmoRifle > 0 && currentGun == CurrentWeapon.rifle)
+        } else if (ammoRifle == 0 && allAmmoRifle > 0 && CurrentGun == CurrentWeapon.rifle)
         {
             GUI.Label(new Rect(mainCamera.pixelWidth / 2, mainCamera.pixelHeight / 2 + 200, 150, 30), "Перезарядите [R]");
         }

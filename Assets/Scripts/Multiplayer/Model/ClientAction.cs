@@ -4,5 +4,5 @@ using UnityEngine;
 
 public enum ClientAction
 {
-   MOVE, SHOOT, REMOVE
+   MOVE, SHOOT, REMOVE, HIT
 }
