@@ -15,8 +15,8 @@ public class MultiListener : MonoBehaviour
     private string respawnTag = "Respawn";
     private string DELIMETER = "|";
 
-    //private string ip = "52.15.155.25";
-    private string ip = "localhost";
+    //private const string ip = "52.15.155.25";
+    private const string ip = "localhost";
     private int port = 16000;
 
     public string Id { get => id; set => id = value; }
@@ -51,43 +51,42 @@ public class MultiListener : MonoBehaviour
         Rotation rot = new Rotation(playerRot.x.ToString(), playerRot.y.ToString(), playerRot.z.ToString(), playerRot.w.ToString());
 
         string action = GetClientActionName(ClientAction.REMOVE);
-        PlayerDataDto request = new PlayerDataDto(Id, pos, rot, action);
+        PlayerDefaultDto request = new PlayerDefaultDto(Id, pos, rot, action);
 
         string json = JsonUtility.ToJson(request);
         send(json);
     }
 
-    public void handleHitAnotherPlayer(Vector3 position, Quaternion rotation, ClientAction action, string targetId, Vector3 target)
-    {
-        handleEventWithShootParam(position, rotation, action, targetId, target);
-    }
-
-    public void handleEvent(Vector3 position, Quaternion rotation, ClientAction action, Vector3 target)
-    {
-        handleEventWithShootParam(position, rotation, action, null, target);
-    }
-
     public void handleEvent(Vector3 position, Quaternion rotation, ClientAction action)
     {
-        handleEventWithShootParam(position, rotation, action, null, Vector3.zero);
-    }
-
-    private void handleEventWithShootParam(Vector3 position, Quaternion rotation, ClientAction action, string targetId, Vector3 target)
-    {
-        Position pos = new Position(position.x.ToString(), position.y.ToString(), position.z.ToString());
-        Position tarPosition = new Position(target.x.ToString(), target.y.ToString(), target.z.ToString());
-        Rotation rot = new Rotation(rotation.x.ToString(), rotation.y.ToString(), rotation.z.ToString(), rotation.w.ToString());
+        Position pos = CoordinatsUtil.vectorToPosition(position);
+        Rotation rot = CoordinatsUtil.quaternionToRotation(rotation);
 
         string actionStr = GetClientActionName(action);
-        PlayerDataDto request = null;
-        if (targetId != null) {
-            request = new PlayerDataDto(Id, pos, rot, actionStr, targetId, tarPosition);
-        } else
-        {
-            request = new PlayerDataDto(Id, pos, rot, actionStr, tarPosition);
-        }
 
+        PlayerDefaultDto request = new PlayerDefaultDto(this.Id, pos, rot, actionStr);
         string json = JsonUtility.ToJson(request);
+        send(json);
+    }
+
+    public void shoot(ClientAction action, Vector3 target)
+    {
+        Position tarPosition = CoordinatsUtil.vectorToPosition(target);
+        string actionStr = GetClientActionName(action);
+
+        ShootDataDto shoot = new ShootDataDto(this.Id, actionStr, tarPosition);
+        string json = JsonUtility.ToJson(shoot);
+        send(json);
+    }
+
+    public void hitPlayer(ClientAction action, string targetId, Vector3 target)
+    {
+        Position tarPosition = CoordinatsUtil.vectorToPosition(target);
+
+        string actionStr = GetClientActionName(action);
+
+        ShootDataDto shoot = new ShootDataDto(this.Id, actionStr, targetId, tarPosition);
+        string json = JsonUtility.ToJson(shoot);
         send(json);
     }
 
@@ -126,30 +125,32 @@ public class MultiListener : MonoBehaviour
         }
     }
 
-    void removePlayer(string id)
+    void removePlayer(PlayerDefaultDto data)
     {
         Respawn resp = GameObject.FindGameObjectWithTag(respawnTag).GetComponent<Respawn>();
-        resp.removeClient(id);
+        resp.removeClient(data.Id);
     }
 
-    void createPlayer(string id)
+    void createPlayer(PlayerDefaultDto data)
     {
+        this.Id = data.Id;
+
         Respawn resp = GameObject.FindGameObjectWithTag(respawnTag).GetComponent<Respawn>();
         Instantiate(player, resp.transform.position, resp.transform.rotation);
         StatusPlayer status = GetComponent<StatusPlayer>();
         status.Id = id;
     }
 
-    void createNewClient(string id, Vector3 pos, Quaternion rot)
+    void createNewClient(PlayerDefaultDto data)
     {
         Respawn resp = GameObject.FindGameObjectWithTag(respawnTag).GetComponent<Respawn>();
-        resp.addClient(id, pos, rot, anotherPlayer);
+        resp.addClient(id, data.positionToVector3(), data.rotationToQuaternion(), anotherPlayer);
     }
 
-    void moveClient(string id, Vector3 pos, Quaternion rot)
+    void moveClient(PlayerDefaultDto data)
     {
         Respawn resp = GameObject.FindGameObjectWithTag(respawnTag).GetComponent<Respawn>();
-        resp.moveClient(id, pos, rot);
+        resp.moveClient(id, data.positionToVector3(), data.rotationToQuaternion());
     }
 
     public string GetClientActionName(ClientAction value)
@@ -157,58 +158,46 @@ public class MultiListener : MonoBehaviour
         return Enum.GetName(typeof(ClientAction), value);
     }
 
-    void anotherPlayerShoot(string id, Position target)
+    void anotherPlayerShoot(ShootDataDto dto)
     {
         Respawn resp = GameObject.FindGameObjectWithTag(respawnTag).GetComponent<Respawn>();
-        resp.shoot(id, target);
+        resp.shoot(id, dto.Target);
     }
 
 
-    void hitPlayer(string id)
+    void hitPlayer(ShootDataDto dto)
     {
         Respawn resp = GameObject.FindGameObjectWithTag(respawnTag).GetComponent<Respawn>();
-        //Change default one damage to damage from response
-        resp.hit(id, 1);
+        //TODO Change default one damage to damage from response
+        resp.hit(dto.Id, 1);
     }
 
     void parseData(string data)
     {
-        PlayerDataDto response = JsonUtility.FromJson<PlayerDataDto>(data);
-        string action = response.Action;
-        Debug.Log("action response" + response.Action);
-
-        Single pX = CoordinatsUtil.parseCoordinations(response.Position.GetX());
-        Single pY = CoordinatsUtil.parseCoordinations(response.Position.GetY());
-        Single pZ = CoordinatsUtil.parseCoordinations(response.Position.GetZ());
-        Vector3 position = new Vector3(pX, pY, pZ);
-
-        Single rX = CoordinatsUtil.parseCoordinations(response.Rotation.GetX());
-        Single rY = CoordinatsUtil.parseCoordinations(response.Rotation.GetY());
-        Single rZ = CoordinatsUtil.parseCoordinations(response.Rotation.GetZ());
-        Single rW = CoordinatsUtil.parseCoordinations(response.Rotation.GetW());
-        Quaternion rotation = new Quaternion(rX, rY, rZ, rW);
-
-        switch (action)
+        if (data.Contains(ClientAction.NEW_SESSION.ToString()))
         {
-            case "NEW_SESSION":
-                this.Id = response.Id;
-                createPlayer(this.id);
-                break;
-            case "NEW_CLIENT":
-                createNewClient(response.Id, position, rotation);
-                break;
-            case "MOVE":
-                moveClient(response.Id, position, rotation);
-                break;
-            case "REMOVE":
-                removePlayer(response.Id);
-                break;
-            case "SHOOT":
-                anotherPlayerShoot(response.Id, response.Target);
-                break;
-            case "HIT":
-                hitPlayer(response.Id);
-                break;
+            PlayerDefaultDto parseData = PlayerDefaultDto.parse(data);
+            createPlayer(parseData);
+        } else if (data.Contains(ClientAction.NEW_CLIENT.ToString()))
+        {
+            PlayerDefaultDto newCLientData = PlayerDefaultDto.parse(data);
+            createNewClient(newCLientData);
+        } else if (data.Contains(ClientAction.MOVE.ToString()))
+        {
+            PlayerDefaultDto moveData = PlayerDefaultDto.parse(data);
+            moveClient(moveData);
+        } else if (data.Contains(ClientAction.REMOVE.ToString()))
+        {
+            PlayerDefaultDto removeData = PlayerDefaultDto.parse(data);
+            removePlayer(removeData);
+        } else if (data.Contains(ClientAction.SHOOT.ToString()))
+        {
+            ShootDataDto shoot = ShootDataDto.parse(data);
+            anotherPlayerShoot(shoot);
+        } else if (data.Contains(ClientAction.HIT.ToString()))
+        {
+            ShootDataDto hit = ShootDataDto.parse(data);
+            hitPlayer(hit);
         }
     }
 }

@@ -158,13 +158,11 @@ public class Shooting : MonoBehaviour
                 ReactiveTarget target = hitObject.GetComponent<ReactiveTarget>();
                 StatusPlayer player = hitObject.GetComponent<StatusPlayer>();
 
-                listener.handleEvent(hitObject.transform.position, hitObject.transform.rotation, ClientAction.SHOOT,
-                    hit.point);
+                listener.shoot(ClientAction.SHOOT, hit.point);
 
                 if (target != null)
                 {
-                    listener.handleEvent(hitObject.transform.position, hitObject.transform.rotation, ClientAction.SHOOT,
-                            hit.point);
+                    listener.shoot(ClientAction.SHOOT, hit.point);
                     target.ReactToHit();
                 }
                 else
@@ -174,8 +172,7 @@ public class Shooting : MonoBehaviour
                     if (player != null)
                     {
                         StatusPlayer status = hitObject.GetComponent<StatusPlayer>();
-                        listener.handleHitAnotherPlayer(hitObject.transform.position, hitObject.transform.rotation, ClientAction.HIT,
-                            status.Id, hit.point);
+                        listener.hitPlayer(ClientAction.HIT, status.Id, hit.point);
                         player.hpPlayerDamage(damageHP);
                     }
                     else
