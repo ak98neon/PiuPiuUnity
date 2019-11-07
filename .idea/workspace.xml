@@ -15,8 +15,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/Assets/Scripts/Multiplayer/MultiListener.cs">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="402">
-              <caret line="171" column="28" lean-forward="true" selection-start-line="171" selection-start-column="28" selection-end-line="171" selection-end-column="28" />
+            <state relative-caret-position="521">
+              <caret line="178" column="82" lean-forward="true" selection-start-line="178" selection-start-column="82" selection-end-line="178" selection-end-column="82" />
             </state>
           </provider>
         </entry>
@@ -57,8 +57,6 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
-      <pane id="PackagesPane" />
-      <pane id="Scope" />
       <pane id="ProjectPane">
         <subPane>
           <expand>
@@ -88,6 +86,8 @@
           <select />
         </subPane>
       </pane>
+      <pane id="PackagesPane" />
+      <pane id="Scope" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -131,6 +131,7 @@
       <workItem from="1572987445666" duration="158000" />
       <workItem from="1572988235653" duration="116000" />
       <workItem from="1572988629243" duration="169000" />
+      <workItem from="1573085375597" duration="79000" />
     </task>
     <task id="LOCAL-00001" summary="Change map, add mountains, add some trees">
       <created>1572200908736</created>
@@ -181,17 +182,24 @@
       <option name="project" value="LOCAL" />
       <updated>1572988787388</updated>
     </task>
-    <option name="localTasksCounter" value="8" />
+    <task id="LOCAL-00008" summary="Update shooting">
+      <created>1573085444802</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1573085444802</updated>
+    </task>
+    <option name="localTasksCounter" value="9" />
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="2259000" />
+    <option name="totallyTimeSpent" value="2338000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="-8" y="-8" width="1696" height="1026" extended-state="6" />
     <editor active="true" />
     <layout>
-      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.22493887" />
+      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.22738387" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Designer" order="2" />
       <window_info id="Image Layers" order="3" />
@@ -284,13 +292,14 @@
     <MESSAGE value="Add another client shooting" />
     <MESSAGE value="Update map" />
     <MESSAGE value="Update parse response json" />
-    <option name="LAST_COMMIT_MESSAGE" value="Update parse response json" />
+    <MESSAGE value="Update shooting" />
+    <option name="LAST_COMMIT_MESSAGE" value="Update shooting" />
   </component>
   <component name="editorHistoryManager">
     <entry file="file://$PROJECT_DIR$/Assets/Scripts/Multiplayer/MultiListener.cs">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="402">
-          <caret line="171" column="28" lean-forward="true" selection-start-line="171" selection-start-column="28" selection-end-line="171" selection-end-column="28" />
+        <state relative-caret-position="521">
+          <caret line="178" column="82" lean-forward="true" selection-start-line="178" selection-start-column="82" selection-end-line="178" selection-end-column="82" />
         </state>
       </provider>
     </entry>

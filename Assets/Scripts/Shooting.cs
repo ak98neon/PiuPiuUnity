@@ -172,7 +172,6 @@ public class Shooting : MonoBehaviour
                     if (player != null)
                     {
                         StatusPlayer status = hitObject.GetComponent<StatusPlayer>();
-                        player.hpPlayerDamage(damageHP);
                         if (status.isAlive())
                         {
                             listener.hitPlayer(ClientAction.HIT, status.Id, hit.point);
@@ -180,6 +179,7 @@ public class Shooting : MonoBehaviour
                         {
                             listener.hitPlayer(ClientAction.KILL_CLIENT, status.Id, hit.point);
                         }
+                        player.hpPlayerDamage(damageHP);
                     }
                     else
                     {
