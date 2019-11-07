@@ -7,6 +7,8 @@ using System.Globalization;
 
 public class MultiListener : MonoBehaviour
 {
+    private static GameObject hostClient;
+
     public GameObject player;
     public GameObject anotherPlayer;
     private StreamWriter writer;
@@ -120,7 +122,7 @@ public class MultiListener : MonoBehaviour
             }
             catch (Exception ex)
             {
-                
+                //Debug.LogWarning(ex.Message);
             }
         }
     }
@@ -136,21 +138,22 @@ public class MultiListener : MonoBehaviour
         this.Id = data.Id;
 
         Respawn resp = GameObject.FindGameObjectWithTag(respawnTag).GetComponent<Respawn>();
-        Instantiate(player, resp.transform.position, resp.transform.rotation);
-        StatusPlayer status = GetComponent<StatusPlayer>();
-        status.Id = id;
+        hostClient = Instantiate(player, resp.transform.position, resp.transform.rotation);
+        StatusPlayer status = hostClient.GetComponent<StatusPlayer>();
+        status.Id = this.Id;
+        status.IsClient = true;
     }
 
     void createNewClient(PlayerDefaultDto data)
     {
         Respawn resp = GameObject.FindGameObjectWithTag(respawnTag).GetComponent<Respawn>();
-        resp.addClient(id, data.positionToVector3(), data.rotationToQuaternion(), anotherPlayer);
+        resp.addClient(data.Id, data.positionToVector3(), data.rotationToQuaternion(), anotherPlayer);
     }
 
     void moveClient(PlayerDefaultDto data)
     {
         Respawn resp = GameObject.FindGameObjectWithTag(respawnTag).GetComponent<Respawn>();
-        resp.moveClient(id, data.positionToVector3(), data.rotationToQuaternion());
+        resp.moveClient(data.Id, data.positionToVector3(), data.rotationToQuaternion());
     }
 
     public string GetClientActionName(ClientAction value)
@@ -161,7 +164,7 @@ public class MultiListener : MonoBehaviour
     void anotherPlayerShoot(ShootDataDto dto)
     {
         Respawn resp = GameObject.FindGameObjectWithTag(respawnTag).GetComponent<Respawn>();
-        resp.shoot(id, dto.Target);
+        resp.shoot(dto.Id, dto.Target);
     }
 
 
@@ -169,7 +172,30 @@ public class MultiListener : MonoBehaviour
     {
         Respawn resp = GameObject.FindGameObjectWithTag(respawnTag).GetComponent<Respawn>();
         //TODO Change default one damage to damage from response
-        resp.hit(dto.Id, 1);
+        if (dto.Action.Equals(ClientAction.HIT.ToString()))
+        {
+            if (dto.TargetId.Equals(this.Id))
+            {
+                StatusPlayer thisPlayer = hostClient.GetComponent<StatusPlayer>();
+                thisPlayer.hpPlayerDamage(1);
+            }
+            else
+            {
+                resp.hit(dto.TargetId, 1);
+            }
+        }
+        else
+        {
+            if (dto.TargetId.Equals(this.Id))
+            {
+                StatusPlayer thisPlayer = hostClient.GetComponent<StatusPlayer>();
+                thisPlayer.HpPlayer = 0;
+            }
+            else
+            {
+                resp.removeClient(dto.TargetId);
+            }
+        }
     }
 
     void parseData(string data)
@@ -198,6 +224,10 @@ public class MultiListener : MonoBehaviour
         {
             ShootDataDto hit = ShootDataDto.parse(data);
             hitPlayer(hit);
+        } else if (data.Contains(ClientAction.KILL_CLIENT.ToString()))
+        {
+            ShootDataDto kill = ShootDataDto.parse(data);
+            hitPlayer(kill);
         }
     }
 }

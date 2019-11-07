@@ -42,3 +42,5 @@ K
 Assets/Prefabs/Players.meta,9\5\95f94008da47e484ccc71bafcc47b5b39ab664ba
 a
 1Assets/Prefabs/Автомат Variant.prefab.meta,a\9\a96e0e30c229ab27dea0c6f732730f44516e33f2
+a
+1Assets/Scripts/Multiplayer/Util/CoordinatsUtil.cs,f\0\f05674ec0507c6950ea9896142a7a27af3bb9eb2
