@@ -14,7 +14,7 @@ public class MultiListener : MonoBehaviour
     private StreamWriter writer;
     private NetworkStream stream;
     private string id;
-    private string respawnTag = "Respawn";
+    public static string respawnTag = "Respawn";
     private string DELIMETER = "|";
 
     //private const string ip = "52.15.155.25";
@@ -198,6 +198,20 @@ public class MultiListener : MonoBehaviour
         }
     }
 
+    void killPlayer(ShootDataDto dto)
+    {
+        Respawn resp = GameObject.FindGameObjectWithTag(respawnTag).GetComponent<Respawn>();
+        if (dto.TargetId.Equals(this.Id))
+        {
+            StatusPlayer thisPlayer = hostClient.GetComponent<StatusPlayer>();
+            thisPlayer.HpPlayer = 0;
+        }
+        else
+        {
+            resp.removeClient(dto.TargetId);
+        }
+    }
+
     void parseData(string data)
     {
         if (data.Contains(ClientAction.NEW_SESSION.ToString()))
@@ -227,7 +241,7 @@ public class MultiListener : MonoBehaviour
         } else if (data.Contains(ClientAction.KILL_CLIENT.ToString()))
         {
             ShootDataDto kill = ShootDataDto.parse(data);
-            hitPlayer(kill);
+            killPlayer(kill);
         }
     }
 }

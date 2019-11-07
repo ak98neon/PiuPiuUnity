@@ -3,12 +3,11 @@
 public class PlayerObserver : MonoBehaviour
 {
     private MultiListener listener;
-    private string respawnTag = "Respawn";
 
     // Use this for initialization
     void Start()
     {
-        listener = GameObject.FindGameObjectWithTag(respawnTag).GetComponent<MultiListener>();
+        listener = GameObject.FindGameObjectWithTag(MultiListener.respawnTag).GetComponent<MultiListener>();
     }
 
     // Update is called once per frame

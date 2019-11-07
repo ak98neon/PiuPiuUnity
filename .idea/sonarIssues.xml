@@ -23,6 +23,11 @@
             <set />
           </value>
         </entry>
+        <entry key="$PROJECT_DIR$/../../IDE/PiuPiuServer/src/main/java/com/unity/shooter/piupiu_server/service/ReceiveListener.java">
+          <value>
+            <set />
+          </value>
+        </entry>
         <entry key="$PROJECT_DIR$/Assets/Scripts/Multiplayer/MultiListener.cs">
           <value>
             <set />

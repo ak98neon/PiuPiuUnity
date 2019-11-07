@@ -16,12 +16,21 @@ public class StatusPlayer : MonoBehaviour
     private int armorPlayer;
     [SerializeField]
     private bool isClient;
+    public GameObject uiGameOver;
+    private MultiListener listener;
 
     public int statusHpPlayer { get; set; }
     public int statusArmorPlayer { get; set; }
     public string Id { get => id; set => id = value; }
     public bool IsClient { get => isClient; set => isClient = value; }
     public int HpPlayer { get => hpPlayer; set => hpPlayer = value; }
+
+    // Use this for initialization
+    void Start()
+    {
+        uiGameOver.SetActive(false);
+        listener = GameObject.FindGameObjectWithTag(MultiListener.respawnTag).GetComponent<MultiListener>();
+    }
 
     void Update()
     {
@@ -53,7 +62,9 @@ public class StatusPlayer : MonoBehaviour
     {
         if (HpPlayer <= 0)
         {
-            Destroy(gameObject);
+            listener.hitPlayer(ClientAction.KILL_CLIENT, this.Id, gameObject.transform.position);
+            uiGameOver.SetActive(true);
+            //Destroy(gameObject);
         }
     }
 
@@ -61,13 +72,7 @@ public class StatusPlayer : MonoBehaviour
     {
         if (IsClient)
         {
-            if (!isAlive())
-            {
-                guiStyle.normal.textColor = Color.white;
-                guiStyle.fontSize = 45;
-                GUI.Label(new Rect(Screen.width / 2 - 50, Screen.height / 2 - 25, 150, 30), "You are dead!", guiStyle);
-            }
-            else
+            if (isAlive())
             {
                 guiStyle.normal.textColor = Color.white;
                 guiStyle.fontSize = 15;
